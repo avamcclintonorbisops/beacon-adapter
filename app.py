@@ -1,0 +1,17 @@
+from flask import Flask, request
+
+app = Flask(__name__)
+data = []
+
+@app.route('/beacon', methods=['POST'])
+def save_beacon():
+    data.append(request.json)
+    return "OK"
+
+@app.route('/beacons', methods=['GET'])
+def get_beacons():
+    return {"data": data}
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
+
