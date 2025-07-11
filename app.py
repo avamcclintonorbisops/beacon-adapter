@@ -14,7 +14,7 @@ def save_beacon():
     data.append(request.get_json())
     return "OK"
 
-@app.route('/beacons', methods=['GET'])
+@app.route('/beacons')
 def get_beacons():
     return {"data": data}
 
