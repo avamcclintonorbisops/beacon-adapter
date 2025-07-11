@@ -3,6 +3,10 @@ from flask import Flask, request
 app = Flask(__name__)
 data = []
 
+@app.route('/')
+def home():
+    return "Beacon Adapter is Live!"
+
 @app.route('/beacon', methods=['POST'])
 def save_beacon():
     if not request.is_json:
@@ -16,4 +20,3 @@ def get_beacons():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
-
