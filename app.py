@@ -11,7 +11,14 @@ def home():
 def save_beacon():
     if not request.is_json:
         return {"error": "Invalid JSON"}, 400
-    data.append(request.get_json())
+
+    content = request.get_json()
+
+    if isinstance(content, list):
+        data.extend(content)
+    else:
+        data.append(content)
+
     return "OK"
 
 @app.route('/beacons')
