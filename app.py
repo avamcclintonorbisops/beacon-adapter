@@ -5,7 +5,9 @@ data = []
 
 @app.route('/beacon', methods=['POST'])
 def save_beacon():
-    data.append(request.json)
+    if not request.is_json:
+        return {"error": "Invalid JSON"}, 400
+    data.append(request.get_json())
     return "OK"
 
 @app.route('/beacons', methods=['GET'])
