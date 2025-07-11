@@ -9,21 +9,29 @@ def home():
 
 @app.route('/beacon', methods=['POST'])
 def save_beacon():
-    if not request.is_json:
-        return {"error": "Invalid JSON"}, 400
+    try:
+        if not request.is_json:
+            return {"error": "Request is not JSON", "content_type": request.content_type}, 400
 
-    content = request.get_json()
+        content = request.get_json(force=True)  # force=True to try parsing anyway
 
-    if isinstance(content, list):
-        data.extend(content)
-    else:
-        data.append(content)
+        print("🔵 Headers:", dict(request.headers))
+        print("📦 Payload:", content)
 
-    return "OK"
+        if isinstance(content, list):
+            data.extend(content)
+        else:
+            data.append(content)
+
+        return {"status": "success"}, 200
+
+    except Exception as e:
+        print("❌ Exception occurred:", str(e))
+        return {"error": str(e)}, 400
 
 @app.route('/beacons')
 def get_beacons():
-    return {"data": data}
+    return {"data": data}, 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
