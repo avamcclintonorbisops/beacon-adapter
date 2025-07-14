@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
+
+# Store most recent beacon data (indexed by name)
 beacon_index = {}
 
 @app.route('/')
@@ -9,26 +11,30 @@ def home():
 
 @app.route('/beacon', methods=['POST'])
 def handle_beacon():
-    payload = request.get_json(force=True)
-    input_array = payload.get("input1", [])
+    try:
+        payload = request.get_json(force=True)
+        input_array = payload.get("input1", [])
 
-    for item in input_array:
-        name = item.get("name")
-        if not name:
-            continue
+        for item in input_array:
+            name = item.get("name")
+            if not name:
+                continue
 
-        # Remove any existing entry for this beacon
-        beacon_index.pop(name, None)
+            # Remove old entry
+            beacon_index.pop(name, None)
 
-        # Filter out unwanted fields
-        filtered_item = {
-            k: v for k, v in item.items()
-            if k not in ("data", "input1")
-        }
+            # Filter out 'data' and 'input1'
+            filtered_item = {
+                k: v for k, v in item.items()
+                if k not in ("data", "input1")
+            }
 
-        beacon_index[name] = filtered_item
+            beacon_index[name] = filtered_item
 
-    return jsonify({"status": "success"}), 200
+        return jsonify({"status": "success", "current_index": beacon_index}), 200
+
+    except Exception as e:
+        return jsonify({"status": "error", "details": str(e)}), 400
 
 @app.route('/beacons', methods=['GET'])
 def get_beacons():
