@@ -1,38 +1,38 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
-data = []
+beacon_index = {}
 
 @app.route('/')
 def home():
     return "Beacon Adapter is Live!"
 
 @app.route('/beacon', methods=['POST'])
-def save_beacon():
-    try:
-        # Print raw body regardless of format
-        raw_body = request.data.decode('utf-8', errors='replace')
-        print("🔴 Raw Body:\n", raw_body)
-        print("🔵 Headers:\n", dict(request.headers))
+def handle_beacon():
+    payload = request.get_json(force=True)
+    input_array = payload.get("input1", [])
 
-        # Try to parse as JSON
-        content = request.get_json(force=True)
-        print("✅ Parsed JSON:\n", content)
+    for item in input_array:
+        name = item.get("name")
+        if not name:
+            continue
 
-        if isinstance(content, list):
-            data.extend(content)
-        else:
-            data.append(content)
+        # Remove any existing entry for this beacon
+        beacon_index.pop(name, None)
 
-        return {"status": "success"}, 200
+        # Filter out unwanted fields
+        filtered_item = {
+            k: v for k, v in item.items()
+            if k not in ("data", "input1")
+        }
 
-    except Exception as e:
-        print("❌ JSON parsing failed:", str(e))
-        return {"error": "Invalid JSON", "details": str(e)}, 400
+        beacon_index[name] = filtered_item
 
-@app.route('/beacons')
+    return jsonify({"status": "success"}), 200
+
+@app.route('/beacons', methods=['GET'])
 def get_beacons():
-    return {"data": data}, 200
+    return jsonify(beacon_index), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
