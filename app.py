@@ -1,29 +1,28 @@
 from flask import Flask, request, jsonify
 import json
+import re
 
 app = Flask(__name__)
 
-# Simple index route
 @app.route('/')
 def home():
     return "Beacon Adapter is running!"
 
-# Endpoint for receiving beacon data
 @app.route('/beacon', methods=['POST'])
 def handle_beacon():
     try:
-        # Try to parse standard JSON payload
         data = request.get_json(silent=True)
 
         if not data:
-            # Fallback: handle non-JSON-encoded body
             raw_body = request.data.decode('utf-8')
             print("Raw (non-JSON) request:", raw_body)
 
-            # Fix malformed input2 payload
-            cleaned = raw_body.replace('input2":{{', 'input2":{').replace('}}}', '}')
+            # Fix malformed input2 with regex (replace double braces only around input2)
+            raw_body = re.sub(r'"input2":\s*\{\{', '"input2":{', raw_body)
+            raw_body = re.sub(r'\}\}\s*}$', '}}', raw_body)  # If extra braces are at the very end
 
-            data = json.loads(cleaned)
+            # Then attempt to parse cleaned data
+            data = json.loads(raw_body)
 
         input1 = data.get("input1", [])
         input2 = data.get("input2", {})
