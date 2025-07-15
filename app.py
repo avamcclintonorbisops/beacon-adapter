@@ -13,8 +13,6 @@ def receive_data():
         # Step 1: Decode raw bytes to text
         raw = request.data.decode("utf-8")
 
-        # Step 2: Replace input2: N/A with input2: null
-        cleaned = re.sub(r'"input2"\s*:\s*N/A', '"input2": null', raw)
 
         # Step 3: Parse JSON
         parsed = json.loads(cleaned)
