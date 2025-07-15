@@ -9,7 +9,7 @@ def home():
 @app.route('/beacon', methods=['POST'])
 def handle_beacon():
     try:
-        data = request.get_json(force=True)
+        data = request.get_json(silent=True)
         print("Payload:", data)
 
         input1 = data.get("input1", [])
