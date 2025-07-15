@@ -26,4 +26,7 @@ def handle_beacon():
 
 @app.route('/beacons', methods=['GET'])
 def get_beacons():
-    return jsonify({"message": "Not storing data in this
+    return jsonify({"message": "Not storing data in this version."})
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8080)
