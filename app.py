@@ -10,36 +10,35 @@ def home():
 @app.route('/beacon', methods=['POST'])
 def handle_beacon():
     try:
+        # Print the raw request body for debugging
+        raw_body = request.data.decode('utf-8', errors='replace')
+        print("📦 Raw Payload:\n", raw_body)
+
+        # Try to parse JSON
         payload = request.get_json(force=True)
+        print("✅ Parsed JSON:\n", payload)
 
-        # Print for debugging
-        print("📩 Payload:", payload)
-
-        input1 = payload.get("input1", [])
-        input2 = payload.get("input2", {})  # GPS data is here
-
-        for item in input1:
+        # Process input1 (beacons)
+        input_array = payload.get("input1", [])
+        for item in input_array:
             name = item.get("name")
             if not name:
                 continue
-
-            # Replace old data with the latest reading
-            filtered_item = {
+            # Replace existing entry
+            beacon_index[name] = {
                 k: v for k, v in item.items()
                 if k not in ("data", "input1")
             }
 
-            # Attach latest GPS data if available
-            if input2:
-                filtered_item["gps"] = input2
+        # Optionally print input2 if present
+        if "input2" in payload:
+            print("📍 GPS Data (input2):", payload["input2"])
 
-            beacon_index[name] = filtered_item
-
-        return jsonify({"status": "success"}), 200
+        return jsonify({"status": "success", "index": beacon_index}), 200
 
     except Exception as e:
-        print("❌ ERROR:", str(e))
-        return jsonify({"status": "error", "details": str(e)}), 400
+        print("❌ Error parsing request:", str(e))
+        return jsonify({"error": "Bad Request", "details": str(e)}), 400
 
 @app.route('/beacons', methods=['GET'])
 def get_beacons():
