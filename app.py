@@ -8,7 +8,7 @@ app = Flask(__name__)
 def home():
     return "Beacon Adapter is running!"
 
-@app.route('/beacon', methods=['POST'])
+@app.route('/beacons', methods=['POST'])
 def handle_beacon():
     try:
         data = request.get_json(silent=True)
