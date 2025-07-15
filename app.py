@@ -24,3 +24,6 @@ def receive_data():
 @app.route("/beacons", methods=["GET"])
 def get_data():
     return jsonify(data_store)
+
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=8080)
