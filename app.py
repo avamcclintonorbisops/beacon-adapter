@@ -20,13 +20,13 @@ def handle_beacon():
        # if not name:
             #continue
        # beacon_index[name] = item  # Store raw data
-       
-input1 = data.get("input1", [])
+    input1 = data.get("input1", [])
     input2 = data.get("input2", [])
     beacon_index.append({
-     "input1": input1,
-     "input2": input2
+        "input1": input1,
+        "input2": input2
     })
+    print(beacon_index)
     return '', 200  # Always return 200 OK
 
 @app.route('/beacons', methods=['GET'])
