@@ -1,29 +1,33 @@
-from flask import Flask, request, jsonify
 import json
 import re
+from flask import Flask, request
 
 app = Flask(__name__)
 
-# Store beacons here
+# Store received beacon data
 data_store = []
 
 @app.route("/beacon", methods=["POST"])
 def receive_data():
     try:
-        # Preprocess: Replace "N/A" with null to make valid JSON
+        # Step 1: Decode raw bytes to text
         raw = request.data.decode("utf-8")
+
+        # Step 2: Replace input2: N/A with input2: null
         cleaned = re.sub(r'"input2"\s*:\s*N/A', '"input2": null', raw)
 
+        # Step 3: Parse JSON
         parsed = json.loads(cleaned)
+
+        # Step 4: Store and print
         data_store.append(parsed)
+        print("✅ Received payload:")
+        print(json.dumps(parsed, indent=2))
+
         return "OK", 200
     except Exception as e:
         print("❌ Error parsing request:", e)
-        return "Bad Request", 400
-
-@app.route("/beacons", methods=["GET"])
-def get_data():
-    return jsonify(data_store)
+        return "Error", 400
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=8080)
+    app.run(host="0.0.0.0", port=8080, debug=True)
