@@ -2,7 +2,8 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-beacon_index = {}
+# beacon_index is now a list so we can append to it
+beacon_index = []
 
 @app.route('/')
 def home():
@@ -14,18 +15,15 @@ def handle_beacon():
     if not data:
         return '', 200  # Don't crash on bad JSON
 
-    #input1 = data.get("input1", [])
-    #for item in input1:
-        #name = item.get("name")
-       # if not name:
-            #continue
-       # beacon_index[name] = item  # Store raw data
     input1 = data.get("input1", [])
     input2 = data.get("input2", [])
+
+    # Fix: append to list, not dict
     beacon_index.append({
         "input1": input1,
         "input2": input2
     })
+
     print(beacon_index)
     return '', 200  # Always return 200 OK
 
