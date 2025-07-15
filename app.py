@@ -1,8 +1,6 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request
 
 app = Flask(__name__)
-
-beacon_index = {}
 
 @app.route('/')
 def home():
@@ -12,20 +10,15 @@ def home():
 def handle_beacon():
     data = request.get_json(silent=True)
     if not data:
-        return '', 200  # Don't crash on bad JSON
+        return '', 200  # Ignore bad JSON
 
     input1 = data.get("input1", [])
-    for item in input1:
-        name = item.get("name")
-        if not name:
-            continue
-        beacon_index[name] = item  # Store raw data
+    input2 = data.get("input2", {})
 
-    return '', 200  # Always return 200 OK
+    print("📡 input1:", input1)
+    print("📍 input2:", input2)
 
-@app.route('/beacons', methods=['GET'])
-def get_beacons():
-    return jsonify(beacon_index)
+    return '', 200  # Always return success
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
