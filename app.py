@@ -1,34 +1,51 @@
 from flask import Flask, request, jsonify
-import time
 
 app = Flask(__name__)
 
-last_update_time = 0
-latest_input1 = None
-latest_input2 = None
+# Store most recent beacon data (indexed by name)
+beacon_index = {}
 
-@app.route("/beacon", methods=["POST"])
-def receive_beacon_data():
-    global last_update_time, latest_input1, latest_input2
+@app.route('/')
 
+@@ -13,27 +11,34 @@ def home():
+def handle_beacon():
     try:
-        data = request.get_json()
+        payload = request.get_json(force=True)
+        input_array = payload.get("input1", [])
 
-        # Update only if 10 seconds have passed
-        if time.time() - last_update_time > 10:
-            latest_input1 = data.get("input1", None)
-            latest_input2 = data.get("input2", None)
-            last_update_time = time.time()
+        for item in input_array:
+        # Print for debugging
+        print("📩 Payload:", payload)
 
-            print("\n🔁 Updated Data:")
-            print("input1:", latest_input1)
-            print("input2:", latest_input2)
+        input1 = payload.get("input1", [])
+        input2 = payload.get("input2", {})  # GPS data is here
 
-        return jsonify({"status": "ok"}), 200
+        for item in input1:
+            name = item.get("name")
+            if not name:
+                continue
+
+            # Remove old entry
+            beacon_index.pop(name, None)
+
+            # Filter out 'data' and 'input1'
+            # Replace old data with the latest reading
+            filtered_item = {
+                k: v for k, v in item.items()
+                if k not in ("data", "input1")
+            }
+
+            # Attach latest GPS data if available
+            if input2:
+                filtered_item["gps"] = input2
+
+            beacon_index[name] = filtered_item
+
+        return jsonify({"status": "success", "current_index": beacon_index}), 200
+        return jsonify({"status": "success"}), 200
 
     except Exception as e:
-        print("❌ Error parsing request:", e)
-        return jsonify({"status": "error", "message": str(e)}), 400
+        print("❌ ERROR:", str(e))
+        return jsonify({"status": "error", "details": str(e)}), 400
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080, debug=True)
+@app.route('/beacons', methods=['GET'])
