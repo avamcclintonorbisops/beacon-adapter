@@ -10,35 +10,44 @@ def home():
 @app.route('/beacon', methods=['POST'])
 def handle_beacon():
     try:
-        # Print the raw request body for debugging
-        raw_body = request.data.decode('utf-8', errors='replace')
-        print("📦 Raw Payload:\n", raw_body)
-
-        # Try to parse JSON
         payload = request.get_json(force=True)
-        print("✅ Parsed JSON:\n", payload)
 
-        # Process input1 (beacons)
-        input_array = payload.get("input1", [])
-        for item in input_array:
+        input1_array = payload.get("input1", [])
+        input2_array = payload.get("input2", [])
+
+        if not isinstance(input1_array, list):
+            return jsonify({"error": "input1 is not a list"}), 400
+
+        if not isinstance(input2_array, list):
+            input2_array = []  # Ignore input2 if it's not a valid list (e.g., N/A string)
+
+        # Process input1
+        for item in input1_array:
             name = item.get("name")
             if not name:
                 continue
-            # Replace existing entry
-            beacon_index[name] = {
+            beacon_index.pop(name, None)
+            filtered_item = {
                 k: v for k, v in item.items()
                 if k not in ("data", "input1")
             }
+            beacon_index[name] = filtered_item
 
-        # Optionally print input2 if present
-        if "input2" in payload:
-            print("📍 GPS Data (input2):", payload["input2"])
+        # Process input2
+        for item in input2_array:
+            name = item.get("name", "unknown_input2")
+            key = f"input2_{name}"
+            beacon_index.pop(key, None)
+            filtered_item = {
+                k: v for k, v in item.items()
+                if k not in ("data", "input1")
+            }
+            beacon_index[key] = filtered_item
 
-        return jsonify({"status": "success", "index": beacon_index}), 200
+        return jsonify({"status": "success"}), 200
 
     except Exception as e:
-        print("❌ Error parsing request:", str(e))
-        return jsonify({"error": "Bad Request", "details": str(e)}), 400
+        return jsonify({"error": "Invalid JSON", "details": str(e)}), 400
 
 @app.route('/beacons', methods=['GET'])
 def get_beacons():
