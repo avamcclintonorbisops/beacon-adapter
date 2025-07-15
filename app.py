@@ -19,10 +19,7 @@ def handle_beacon():
     input2 = data.get("input2", [])
 
     # Fix: append to list, not dict
-    beacon_index.append({
-        "input1": input1,
-        "input2": input2
-    })
+   beacon_index = request.get_json()
 
     print(beacon_index)
     return '', 200  # Always return 200 OK
