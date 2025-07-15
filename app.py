@@ -45,3 +45,6 @@ def handle_beacon():
 @app.route('/beacons', methods=['GET'])
 def get_beacons():
     return jsonify(beacon_index)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080)
