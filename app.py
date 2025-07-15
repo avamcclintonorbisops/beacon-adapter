@@ -33,4 +33,11 @@ def handle_beacon():
 
         return jsonify({"status": "success", "current_index": beacon_index}), 200
     except Exception as e:
-        return jsonify({"status": "
+        return jsonify({"status": "error", "details": str(e)}), 400
+
+@app.route('/beacons', methods=['GET'])
+def get_beacons():
+    return jsonify(beacon_index), 200
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8080)
