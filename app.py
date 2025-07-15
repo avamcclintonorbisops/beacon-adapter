@@ -14,12 +14,12 @@ def handle_beacon():
     if not data:
         return '', 200  # Don't crash on bad JSON
 
-    input1 = data.get("input1", [])
-    for item in input1:
+    #input1 = data.get("input1", [])
+    #for item in input1:
         name = item.get("name")
-        if not name:
-            continue
-        beacon_index[name] = item  # Store raw data
+       # if not name:
+            #continue
+       # beacon_index[name] = item  # Store raw data
 
     return '', 200  # Always return 200 OK
 
