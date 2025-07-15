@@ -3,30 +3,24 @@ import json
 import re
 
 app = Flask(__name__)
-data = []
 
-@app.route('/')
-def home():
-    return "Beacon Adapter is Live!"
+# Store beacons here
+data_store = []
 
-@app.route('/beacon', methods=['POST'])
-def handle_beacon():
+@app.route("/beacon", methods=["POST"])
+def receive_data():
     try:
-        # Fix invalid JSON: replace input2: N/A with input2: []
-        raw = request.data.decode('utf-8')
-        raw = re.sub(r'"input2"\s*:\s*N/A', '"input2": []', raw)
+        # Preprocess: Replace "N/A" with null to make valid JSON
+        raw = request.data.decode("utf-8")
+        cleaned = re.sub(r'"input2"\s*:\s*N/A', '"input2": null', raw)
 
-        payload = json.loads(raw)
-        data.append(payload)
-
-        return jsonify({"status": "success"}), 200
+        parsed = json.loads(cleaned)
+        data_store.append(parsed)
+        return "OK", 200
     except Exception as e:
-        return jsonify({"error": "Invalid JSON", "details": str(e)}), 400
+        print("❌ Error parsing request:", e)
+        return "Bad Request", 400
 
-@app.route('/beacons', methods=['GET'])
-def get_beacons():
-    return jsonify(data), 200
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
-
+@app.route("/beacons", methods=["GET"])
+def get_data():
+    return jsonify(data_store)
