@@ -3,7 +3,7 @@ import json
 
 app = Flask(__name__)
 
-# Store most recent data for each beacon
+# Store most recent data per beacon
 beacon_index = {}
 
 @app.route('/')
@@ -18,7 +18,7 @@ def handle_beacon():
         if not data:
             raw_body = request.data.decode('utf-8')
             print("Raw (non-JSON) request:", raw_body)
-            cleaned = raw_body.replace('input2': '{{', 'input2': '{').replace('}}}', '}}')
+            cleaned = raw_body.replace('input2":{{', 'input2":{').replace('}}}', '}}')
             data = json.loads(cleaned)
 
         input1 = data.get("input1", [])
@@ -28,8 +28,6 @@ def handle_beacon():
             name = item.get("name")
             if not name:
                 continue
-
-            # Store most recent data per beacon
             beacon_index[name] = {
                 "beacon": item,
                 "gps": input2
