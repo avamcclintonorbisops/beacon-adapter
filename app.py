@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+import json
 
 app = Flask(__name__)
 
@@ -8,21 +9,26 @@ def home():
 
 @app.route('/beacon', methods=['POST'])
 def handle_beacon():
-    data = request.get_json(silent=True)
+    try:
+        # Try to parse JSON the standard way
+        data = request.get_json(silent=True)
 
-    print("Payload:", data)
+        if not data:
+            # If that fails, decode raw body and parse manually
+            raw_body = request.data.decode('utf-8')
+            print("Raw (non-JSON) request:", raw_body)
+            data = json.loads(raw_body)
 
-    if not data:
-        print("Raw (non-JSON) request:", request.data)
-        return '', 200  # Avoid crashing on bad input
+        input1 = data.get("input1", [])
+        input2 = data.get("input2", {})
 
-    input1 = data.get("input1", [])
-    input2 = data.get("input2", {})
+        print("input1:", input1)
+        print("input2:", input2)
 
-    print("input1:", input1)
-    print("input2:", input2)
+    except Exception as e:
+        print("Error:", e)
 
-    return '', 200  # Return success always
+    return '', 200  # Always respond with 200 OK
 
 @app.route('/beacons', methods=['GET'])
 def get_beacons():
