@@ -16,7 +16,7 @@ def handle_beacon():
 
     #input1 = data.get("input1", [])
     #for item in input1:
-        name = item.get("name")
+        #name = item.get("name")
        # if not name:
             #continue
        # beacon_index[name] = item  # Store raw data
