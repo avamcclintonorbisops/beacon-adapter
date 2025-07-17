@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import json
+from graphene import ObjectType, String, Field, Schema, Dict
 
 app = Flask(__name__)
 
@@ -45,6 +46,38 @@ def handle_beacon():
 @app.route('/beacons', methods=['GET'])
 def get_beacons():
     return jsonify(beacon_index)
+
+
+# ---------------- GRAPHQL BELOW ---------------- #
+
+class BeaconData(ObjectType):
+    beacon = Dict()
+    gps = Dict()
+
+class Query(ObjectType):
+    beacons = Field(Dict)
+    beacon = Field(BeaconData, id=String(required=True))
+
+    def resolve_beacons(root, info):
+        return beacon_index
+
+    def resolve_beacon(root, info, id):
+        return beacon_index.get(id)
+
+schema = Schema(query=Query)
+
+@app.route("/graphql", methods=["POST"])
+def graphql_server():
+    data = request.get_json()
+    query = data.get("query")
+
+    result = schema.execute(query)
+    return jsonify({
+        "data": result.data,
+        "errors": [str(e) for e in result.errors] if result.errors else None
+    })
+
+# ---------------- RUN APP ---------------- #
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
