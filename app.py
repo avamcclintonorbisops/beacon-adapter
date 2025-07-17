@@ -1,11 +1,14 @@
 from flask import Flask, request, jsonify
+from graphene import ObjectType, String, Field, Schema
+import graphene
 import json
-from graphene import ObjectType, String, Field, Schema, Dict
 
 app = Flask(__name__)
 
-# Store most recent data per beacon
+# In-memory store of beacons
 beacon_index = {}
+
+# ------------------------ FLASK ROUTES ------------------------ #
 
 @app.route('/')
 def home():
@@ -47,37 +50,52 @@ def handle_beacon():
 def get_beacons():
     return jsonify(beacon_index)
 
+# ------------------------ GRAPHQL TYPES ------------------------ #
 
-# ---------------- GRAPHQL BELOW ---------------- #
+class BeaconType(graphene.ObjectType):
+    name = graphene.String()
+    beacon = graphene.String()
+    gps = graphene.String()
 
-class BeaconData(ObjectType):
-    beacon = Dict()
-    gps = Dict()
+class Query(graphene.ObjectType):
+    beacons = graphene.List(BeaconType)
+    beacon = graphene.Field(BeaconType, name=graphene.String(required=True))
 
-class Query(ObjectType):
-    beacons = Field(Dict)
-    beacon = Field(BeaconData, id=String(required=True))
+    def resolve_beacons(parent, info):
+        return [
+            BeaconType(name=name, beacon=json.dumps(value["beacon"]), gps=json.dumps(value["gps"]))
+            for name, value in beacon_index.items()
+        ]
 
-    def resolve_beacons(root, info):
-        return beacon_index
-
-    def resolve_beacon(root, info, id):
-        return beacon_index.get(id)
+    def resolve_beacon(parent, info, name):
+        if name in beacon_index:
+            data = beacon_index[name]
+            return BeaconType(name=name, beacon=json.dumps(data["beacon"]), gps=json.dumps(data["gps"]))
+        return None
 
 schema = Schema(query=Query)
 
-@app.route("/graphql", methods=["POST"])
+@app.route('/graphql', methods=['POST'])
 def graphql_server():
+    # JWT validation is skipped for now
+    # auth_header = request.headers.get("Authorization")
+    # if not auth_header:
+    #     return jsonify({"error": "Authorization header missing"}), 401
+
+    # token = auth_header.split(" ")[1]
+    # if not validate_jwt(token):
+    #     return jsonify({"error": "Invalid JWT"}), 401
+
     data = request.get_json()
     query = data.get("query")
-
     result = schema.execute(query)
+
     return jsonify({
         "data": result.data,
         "errors": [str(e) for e in result.errors] if result.errors else None
     })
 
-# ---------------- RUN APP ---------------- #
+# ------------------------ RUN APP ------------------------ #
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
