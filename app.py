@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from graphene import ObjectType, String, Field, Schema
 import graphene
 import json
+import re  # Needed for the _sdl support
 
 app = Flask(__name__)
 
@@ -95,6 +96,11 @@ def graphql_server():
 
     data = request.get_json()
     query = data.get("query")
+
+    # Handle SDL introspection for Catalyst
+    if re.match(r"^\s*{\s*_sdl\s*}\s*$", query):
+        return jsonify({"data": {"_sdl": str(schema)}})
+
     result = schema.execute(query)
 
     return jsonify({
