@@ -60,6 +60,7 @@ class BeaconType(graphene.ObjectType):
 class Query(graphene.ObjectType):
     beacons = graphene.List(BeaconType)
     beacon = graphene.Field(BeaconType, name=graphene.String(required=True))
+    beacons_by_names = graphene.List(BeaconType, names=graphene.List(graphene.String, required=True))
 
     def resolve_beacons(parent, info):
         return [
@@ -72,6 +73,12 @@ class Query(graphene.ObjectType):
             data = beacon_index[name]
             return BeaconType(name=name, beacon=json.dumps(data["beacon"]), gps=json.dumps(data["gps"]))
         return None
+
+    def resolve_beacons_by_names(parent, info, names):
+        return [
+            BeaconType(name=name, beacon=json.dumps(beacon_index[name]["beacon"]), gps=json.dumps(beacon_index[name]["gps"]))
+            for name in names if name in beacon_index
+        ]
 
 schema = Schema(query=Query)
 
