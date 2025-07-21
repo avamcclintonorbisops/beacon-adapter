@@ -133,11 +133,9 @@ def graphql_server():
     data = request.get_json()
     query = data.get("query")
 
-    # Allow SDL introspection without auth
     if re.match(r"^\s*{\s*_sdl\s*}\s*$", query):
         return jsonify({"data": {"_sdl": str(schema)}})
 
-    # Require JWT for everything else
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
         return jsonify({"error": "Authorization header missing or invalid"}), 401
