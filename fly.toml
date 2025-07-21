@@ -22,3 +22,9 @@ protocol = "tcp"
   [[services.ports]]
   port = 443
   handlers = ["tls", "http"]
+
+# ---------------------
+# ✅ Added for Catalyst JWT validation
+[env]
+CATALYST_JWK_URL = "https://your-catalyst-domain.com/jwks.json"
+CATALYST_CHANNEL_ID = "your-channel-id-here"
