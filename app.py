@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify
 from graphene import ObjectType, String, Field, Schema
 import graphene
 import json
-import re
 import os
 
 app = Flask(__name__)
@@ -21,7 +20,7 @@ class Query(graphene.ObjectType):
     beacons = graphene.List(BeaconType)
     beacon = graphene.Field(BeaconType, name=graphene.String(required=True))
     beacons_by_names = graphene.List(BeaconType, names=graphene.List(graphene.String, required=True))
-    _sdl = graphene.String()  # SDL introspection field
+    sdl = graphene.String(name="_sdl")  # ✅ expose _sdl with correct GraphQL name
 
     def resolve_beacons(parent, info):
         return [
@@ -41,7 +40,7 @@ class Query(graphene.ObjectType):
             for name in names if name in beacon_index
         ]
 
-    def resolve__sdl(parent, info):
+    def resolve_sdl(parent, info):  # ✅ matches the Python field name, not the GraphQL alias
         return str(schema)
 
 schema = Schema(query=Query)
@@ -85,7 +84,6 @@ def get_beacons():
 def graphql_server():
     data = request.get_json()
     query = data.get("query", "")
-
     result = schema.execute(query)
     return jsonify({
         "data": result.data,
