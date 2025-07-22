@@ -41,7 +41,7 @@ class Query(graphene.ObjectType):
             for name in names if name in beacon_index
         ]
 
-    def resolve__sdl(parent, info):  # For Catalyst introspection
+    def resolve__sdl(parent, info):
         return str(schema)
 
 schema = Schema(query=Query)
@@ -86,7 +86,6 @@ def graphql_server():
     data = request.get_json()
     query = data.get("query", "")
 
-    # Allow any query, including _sdl, with no token check
     result = schema.execute(query)
     return jsonify({
         "data": result.data,
