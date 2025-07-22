@@ -66,6 +66,7 @@ class Query(graphene.ObjectType):
     beacons = graphene.List(BeaconType)
     beacon = graphene.Field(BeaconType, name=graphene.String(required=True))
     beacons_by_names = graphene.List(BeaconType, names=graphene.List(graphene.String, required=True))
+    _sdl = graphene.String()  # <-- Add SDL introspection field
 
     def resolve_beacons(parent, info):
         return [
@@ -84,6 +85,9 @@ class Query(graphene.ObjectType):
             BeaconType(name=name, beacon=json.dumps(beacon_index[name]["beacon"]), gps=json.dumps(beacon_index[name]["gps"]))
             for name in names if name in beacon_index
         ]
+
+    def resolve__sdl(parent, info):  # <-- Resolver for _sdl
+        return str(schema)
 
 schema = Schema(query=Query)
 
