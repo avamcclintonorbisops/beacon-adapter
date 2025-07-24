@@ -1,4 +1,4 @@
-app = "beacon-adapter"
+app = "beacon-adapter-dev"
 primary_region = "iad"
 
 [build]
