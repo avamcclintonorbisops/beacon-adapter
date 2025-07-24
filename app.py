@@ -6,13 +6,18 @@ import os
 import base64
 import requests
 import jwt
+import yaml
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
 app = Flask(__name__)
 
+# ------------------ LOAD CONFIG ------------------ #
+with open("config.yml", "r") as f:
+    config = yaml.safe_load(f)
+REQUIRED_CHANNEL_ID = config.get("channel_id")
+
 # ------------------ ENVIRONMENT VARIABLES ------------------ #
 CATALYST_JWK_URL = os.getenv("CATALYST_JWK_URL")
-CATALYST_CHANNEL_ID = os.getenv("CATALYST_CHANNEL_ID")
 
 # ------------------ BEACON MEMORY STORE ------------------ #
 beacon_index = {}
@@ -36,15 +41,20 @@ def validate_jwt(token):
         jwks = get_jwks()
         signing_key = get_signing_key_from_jwt(token, jwks)
 
-        # Decode without verifying signature (just to unpack)
+        # Unverified claims to extract channel ID
         unverified_claims = jwt.decode(token, options={"verify_signature": False})
         print("🔓 Unpacked JWT claims:", unverified_claims)
 
-        # NOTE: Skipping signature verification on purpose for this dev version
+        channel_ids = unverified_claims.get("claims", [])
+        if REQUIRED_CHANNEL_ID not in channel_ids:
+            print("❌ Channel ID mismatch")
+            return False
+
+        # Signature verification (optional - still skipping for dev)
         return True
     except Exception as e:
-        print(f"JWT validation error (but ignored): {e}")
-        return True  # allow access anyway
+        print(f"JWT validation error: {e}")
+        return False
 
 # ------------------ GRAPHQL TYPES ------------------ #
 
@@ -131,7 +141,8 @@ def graphql_server():
         return jsonify({"error": "Missing or invalid Authorization header"}), 401
 
     token = auth_header.split(" ")[1]
-    validate_jwt(token)  # will not block if invalid
+    if not validate_jwt(token):
+        return jsonify({"error": "Invalid or unauthorized JWT"}), 401
 
     result = schema.execute(query)
     return jsonify({
