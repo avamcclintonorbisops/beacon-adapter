@@ -15,6 +15,7 @@ app = Flask(__name__)
 with open("config.yml", "r") as f:
     config = yaml.safe_load(f)
 REQUIRED_CHANNEL_ID = config.get("channel_id")
+print(f"📦 Loaded channel ID from config: {REQUIRED_CHANNEL_ID}")
 
 # ------------------ ENVIRONMENT VARIABLES ------------------ #
 CATALYST_JWK_URL = os.getenv("CATALYST_JWK_URL")
@@ -46,6 +47,8 @@ def validate_jwt(token):
         print("🔓 Unpacked JWT claims:", unverified_claims)
 
         channel_ids = unverified_claims.get("claims", [])
+        print(f"🔍 JWT channel IDs: {channel_ids}")
+
         if REQUIRED_CHANNEL_ID not in channel_ids:
             print("❌ Channel ID mismatch")
             return False
