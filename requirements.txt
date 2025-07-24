@@ -3,3 +3,4 @@ graphene==2.1.9
 requests
 pyjwt
 cryptography
+pyyaml
