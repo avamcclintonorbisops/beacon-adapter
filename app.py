@@ -36,15 +36,19 @@ def validate_jwt(token):
         jwks = get_jwks()
         signing_key = get_signing_key_from_jwt(token, jwks)
 
-        # Decode without verifying signature (just to unpack)
+        # Decode without verifying signature (to inspect claims)
         unverified_claims = jwt.decode(token, options={"verify_signature": False})
         print("🔓 Unpacked JWT claims:", unverified_claims)
 
-        # NOTE: Skipping signature verification on purpose for this dev version
+        # ✅ Check if channel ID is in the token claims
+        if CATALYST_CHANNEL_ID and CATALYST_CHANNEL_ID not in unverified_claims.get("claims", {}):
+            raise jwt.InvalidTokenError("Channel claim not present")
+
+        # Skip full signature validation for now (can add later)
         return True
     except Exception as e:
-        print(f"JWT validation error (but ignored): {e}")
-        return True  # allow access anyway
+        print(f"JWT validation error (channel check): {e}")
+        return False
 
 # ------------------ GRAPHQL TYPES ------------------ #
 
@@ -131,7 +135,8 @@ def graphql_server():
         return jsonify({"error": "Missing or invalid Authorization header"}), 401
 
     token = auth_header.split(" ")[1]
-    validate_jwt(token)  # will not block if invalid
+    if not validate_jwt(token):
+        return jsonify({"error": "Invalid or expired JWT"}), 401
 
     result = schema.execute(query)
     return jsonify({
@@ -143,4 +148,3 @@ def graphql_server():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
-

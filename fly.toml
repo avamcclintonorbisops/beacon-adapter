@@ -20,3 +20,8 @@ primary_region = 'atl'
   memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
+
+# ✅ JWT config for Catalyst token validation
+[env]
+CATALYST_JWK_URL = "https://catalyst.orbisops.com/jwks.json"
+CATALYST_CHANNEL_ID = "f26f4409-9aa9-4420-a11d-6b2c11968a37"
