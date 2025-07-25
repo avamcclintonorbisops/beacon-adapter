@@ -6,7 +6,8 @@ primary_region = 'atl'
 [build]
 
 [env]
-CATALYST_JWK_URL = "https://raw.githubusercontent.com/orbisops/keys/main/jwks.json"
+CATALYST_JWK_URL = "https://staging.gateway.catalyst.devintelops.io/.well-known/jwks.json"
+
 
 [http_service]
 internal_port = 8080
