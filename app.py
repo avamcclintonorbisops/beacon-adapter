@@ -15,7 +15,6 @@ app = Flask(__name__)
 with open("config.yml", "r") as f:
     config = yaml.safe_load(f)
 REQUIRED_CHANNEL_ID = config.get("channel_id")
-print(f"📦 Loaded channel ID from config: {REQUIRED_CHANNEL_ID}")
 
 # ------------------ ENVIRONMENT VARIABLES ------------------ #
 CATALYST_JWK_URL = os.getenv("CATALYST_JWK_URL")
@@ -42,18 +41,17 @@ def validate_jwt(token):
         jwks = get_jwks()
         signing_key = get_signing_key_from_jwt(token, jwks)
 
-        # Unverified claims to extract channel ID
         unverified_claims = jwt.decode(token, options={"verify_signature": False})
-        print("🔓 Unpacked JWT claims:", unverified_claims)
-
         channel_ids = unverified_claims.get("claims", [])
-        print(f"🔍 JWT channel IDs: {channel_ids}")
+
+        print("🔓 Unpacked JWT claims:", unverified_claims)
+        print("📡 Extracted channel IDs from token:", channel_ids)
+        print("📦 Required channel ID from config:", REQUIRED_CHANNEL_ID)
 
         if REQUIRED_CHANNEL_ID not in channel_ids:
-            print("❌ Channel ID mismatch")
+            print("❌ Channel ID mismatch. Rejecting token.")
             return False
 
-        # Signature verification (optional - still skipping for dev)
         return True
     except Exception as e:
         print(f"JWT validation error: {e}")
@@ -138,7 +136,6 @@ def graphql_server():
     if query.strip() == "{ _sdl }":
         return jsonify({"data": {"_sdl": str(schema)}})
 
-    # Enforce token presence
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
         return jsonify({"error": "Missing or invalid Authorization header"}), 401
