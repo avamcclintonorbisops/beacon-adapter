@@ -18,6 +18,7 @@ REQUIRED_CHANNEL_ID = config.get("channel_id")
 
 # ------------------ ENVIRONMENT VARIABLES ------------------ #
 CATALYST_JWK_URL = os.getenv("CATALYST_JWK_URL")
+print(f"🔐 CATALYST_JWK_URL loaded: {CATALYST_JWK_URL}")
 
 # ------------------ BEACON MEMORY STORE ------------------ #
 beacon_index = {}
